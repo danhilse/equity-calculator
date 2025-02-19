@@ -11,7 +11,7 @@ const EquityCalculator = () => {
     const [revenuePerUser, setRevenuePerUser] = useState(1000);
     const [valuationMultiple, setValuationMultiple] = useState(10);
     const [successProbability, setSuccessProbability] = useState(50);
-    const [monthsOfDev, setMonthsOfDev] = useState(5);
+    const [monthsOfDev, setMonthsOfDev] = useState(4);
     const [apiCostMonthly, setApiCostMonthly] = useState(25);
     const [isHourlyMode, setIsHourlyMode] = useState(false);
     const [hourlyRate, setHourlyRate] = useState(62.50);
@@ -28,13 +28,15 @@ const EquityCalculator = () => {
     const totalHours = monthsOfDev * 20 * 4; // 20 hours per week * ~4 weeks per month
     
     // Calculate designer monthly pay
-    const designerMonthlyPay = designerWeeklyPay * 4;
+      // Update cost calculations
+  const designerMonthlyPay = designerWeeklyPay * 4;
+  const designerTotalCost = designerMonthlyPay * monthsOfDev;
   
-    // Calculate dev pay based on mode
-    const getStandardMonthlyPay = () => {
-      const totalMonthlyBudget = 5000; // Total monthly budget
-      return totalMonthlyBudget - designerMonthlyPay; // Subtract designer pay
-    };
+  const getStandardMonthlyPay = () => {
+    const totalMonthlyBudget = 5000;
+    return totalMonthlyBudget - designerMonthlyPay;
+  };
+
   
     function calculateDevPayFromEquity(equity: number) {
       const standardMonthlyPay = getStandardMonthlyPay();
@@ -55,32 +57,69 @@ const EquityCalculator = () => {
     }
   
     const devPayMonthly = isHourlyMode 
-      ? hourlyRate * 20 * 4  // 20 hours/week * 4 weeks
-      : calculateDevPayFromEquity(equityData[0].value);
-    
-    const devPayWeekly = devPayMonthly / 4;
-    const devPayHourly = devPayMonthly / (20 * 4);
+    ? hourlyRate * 20 * 4
+    : calculateDevPayFromEquity(equityData[0].value);
   
-    const annualRevenue = numUsers * revenuePerUser;
-    const baseValuation = annualRevenue * valuationMultiple;
-    const riskAdjustedValuation = baseValuation * (successProbability / 100);
-    
-    const totalDevCost = (devPayMonthly + designerMonthlyPay) * monthsOfDev;
-    const totalApiCost = apiCostMonthly * monthsOfDev;
-    const totalInvestmentCost = totalDevCost + totalApiCost;
-    
-    const investmentGroupEquity = equityData[1].value;
-    const investmentGroupValue = riskAdjustedValuation * (investmentGroupEquity / 100);
-    const investmentMultiple = investmentGroupValue / totalInvestmentCost;
+  const devPayWeekly = devPayMonthly / 4;
+  const devPayHourly = devPayMonthly / (20 * 4);
+  const devTotalCost = devPayMonthly * monthsOfDev;
+
+  const annualRevenue = numUsers * revenuePerUser;
+  const baseValuation = annualRevenue * valuationMultiple;
+  const riskAdjustedValuation = baseValuation * (successProbability / 100);
   
-    const formatCurrency = (value: number) => {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        maximumFractionDigits: 0,
-      }).format(value);
-    };
-  
+  // Update total development and investment costs
+  const totalDevCost = devTotalCost + designerTotalCost;
+  const totalApiCost = apiCostMonthly * monthsOfDev;
+  const totalInvestmentCost = totalDevCost + totalApiCost;
+
+  const investmentGroupEquity = equityData[1].value;
+  const investmentGroupValue = riskAdjustedValuation * (investmentGroupEquity / 100);
+  const investmentMultiple = investmentGroupValue / totalInvestmentCost;
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+
+  const breakdownSection = (
+    <div className="grid grid-cols-4 gap-4 mt-4">
+      <div className="p-3 rounded bg-gray-50 border">
+        <div className="text-sm text-gray-600">Dev Total</div>
+        <div className="text-lg font-semibold">{formatCurrency(devTotalCost)}</div>
+        <div className="text-xs text-gray-500">
+          {formatCurrency(devPayMonthly)}/mo
+        </div>
+      </div>
+      <div className="p-3 rounded bg-gray-50 border">
+        <div className="text-sm text-gray-600">Designer Total</div>
+        <div className="text-lg font-semibold">{formatCurrency(designerTotalCost)}</div>
+        <div className="text-xs text-gray-500">
+          {formatCurrency(designerMonthlyPay)}/mo
+        </div>
+      </div>
+      <div className="p-3 rounded bg-gray-50 border">
+        <div className="text-sm text-gray-600">Dev Hourly</div>
+        <div className="text-lg font-semibold">{formatCurrency(devPayHourly)}/hr</div>
+        <div className="text-xs text-gray-500">
+          {formatCurrency(devPayWeekly)}/wk
+        </div>
+      </div>
+      <div className="p-3 rounded bg-gray-50 border">
+        <div className="text-sm text-gray-600">Total Investment</div>
+        <div className="text-lg font-semibold">{formatCurrency(totalInvestmentCost)}</div>
+        <div className="text-xs text-gray-500">
+          {monthsOfDev} months
+        </div>
+      </div>
+    </div>
+  );
+    
+
     const formatPercent = (value: number) => {
       return `${value.toFixed(1)}%`;
     };
@@ -251,20 +290,8 @@ const EquityCalculator = () => {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mt-4">
-            <div className="p-3 rounded bg-gray-50 border">
-              <div className="text-sm text-gray-600">Dev Hourly</div>
-              <div className="text-lg font-semibold">{formatCurrency(devPayHourly)}/hr</div>
-            </div>
-            <div className="p-3 rounded bg-gray-50 border">
-              <div className="text-sm text-gray-600">Total Dev Cost</div>
-              <div className="text-lg font-semibold">{formatCurrency(totalDevCost)}</div>
-            </div>
-            <div className="p-3 rounded bg-gray-50 border">
-              <div className="text-sm text-gray-600">Total Investment</div>
-              <div className="text-lg font-semibold">{formatCurrency(totalInvestmentCost)}</div>
-            </div>
-          </div>
+          {breakdownSection}
+
         </CardContent>
       </Card>
 
