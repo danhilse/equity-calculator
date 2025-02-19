@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
@@ -21,7 +21,7 @@ const EquityCalculator = () => {
   ]);
 
   // Calculate dev pay based on equity percentage
-  const calculateDevPay = (equity) => {
+  const calculateDevPay = (equity: number) => {
     const maxPay = 12000; // Monthly pay at 0% equity
     const standardPay = 4000; // Monthly pay at 35% equity
     const standardEquity = 35;
@@ -52,7 +52,7 @@ const EquityCalculator = () => {
   const investmentMultiple = investmentGroupValue / totalInvestmentCost;
   const perInvestorEquity = investmentGroupEquity / 3;
 
-  const formatCurrency = (value) => {
+  const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -60,11 +60,11 @@ const EquityCalculator = () => {
     }).format(value);
   };
 
-  const formatPercent = (value) => {
+const formatPercent = (value: number): string => {
     return `${value.toFixed(1)}%`;
-  };
+};
 
-  const handleEquityChange = (index, newValue) => {
+  const handleEquityChange = (index: number, newValue: number) => {
     const newEquityData = [...equityData];
     const oldValue = newEquityData[index].value;
     const difference = newValue - oldValue;
