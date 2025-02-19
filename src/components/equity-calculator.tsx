@@ -60,9 +60,9 @@ const EquityCalculator = () => {
     }).format(value);
   };
 
-const formatPercent = (value: number): string => {
+  const formatPercent = (value: number) => {
     return `${value.toFixed(1)}%`;
-};
+  };
 
   const handleEquityChange = (index: number, newValue: number) => {
     const newEquityData = [...equityData];
@@ -136,7 +136,7 @@ const formatPercent = (value: number): string => {
             <Slider 
               value={[successProbability]}
               min={10}
-              max={90}
+              max={100}
               step={5}
               onValueChange={([value]) => setSuccessProbability(value)}
             />
@@ -231,7 +231,10 @@ const formatPercent = (value: number): string => {
                   <label style={{ color: equityData[0].color }} className="font-medium">
                     Developer (Daniel)
                   </label>
-                  <span>{formatPercent(equityData[0].value)}</span>
+                  <span>{formatCurrency(riskAdjustedValuation * equityData[0].value / 100)}</span>
+                </div>
+                <div className="text-sm text-gray-600 mb-2">
+                  {formatPercent(equityData[0].value)} • Implied Monthly Pay: {formatCurrency(devPayMonthly)}
                 </div>
                 <Slider 
                   value={[equityData[0].value]}
@@ -240,9 +243,6 @@ const formatPercent = (value: number): string => {
                   step={1}
                   onValueChange={([value]) => handleEquityChange(0, value)}
                 />
-                <div className="text-sm text-gray-600">
-                  Implied Monthly Pay: {formatCurrency(devPayMonthly)}
-                </div>
               </div>
 
               {/* Investment Group Section */}
@@ -251,7 +251,10 @@ const formatPercent = (value: number): string => {
                   <label style={{ color: equityData[1].color }} className="font-medium">
                     Investment Group
                   </label>
-                  <span>{formatPercent(equityData[1].value)}</span>
+                  <span>{formatCurrency(riskAdjustedValuation * equityData[1].value / 100)}</span>
+                </div>
+                <div className="text-sm text-gray-600 mb-2">
+                  {formatPercent(equityData[1].value)} • {formatPercent(perInvestorEquity)} per investor
                 </div>
                 <Slider 
                   value={[equityData[1].value]}
@@ -260,9 +263,9 @@ const formatPercent = (value: number): string => {
                   step={1}
                   onValueChange={([value]) => handleEquityChange(1, value)}
                 />
-                <div className="text-sm text-gray-600 space-y-1">
+                <div className="text-sm text-gray-600 space-y-1 mt-2">
                   <div className="flex justify-between">
-                    <span>Per Investor ({formatPercent(perInvestorEquity)}):</span>
+                    <span>Per Investor Value:</span>
                     <span>{formatCurrency(investmentGroupValue / 3)}</span>
                   </div>
                   <div className="flex justify-between">
@@ -278,7 +281,10 @@ const formatPercent = (value: number): string => {
                   <label style={{ color: equityData[2].color }} className="font-medium">
                     Designer (Isaac)
                   </label>
-                  <span>{formatPercent(equityData[2].value)}</span>
+                  <span>{formatCurrency(riskAdjustedValuation * equityData[2].value / 100)}</span>
+                </div>
+                <div className="text-sm text-gray-600 mb-2">
+                  {formatPercent(equityData[2].value)}
                 </div>
                 <Slider 
                   value={[equityData[2].value]}
@@ -290,11 +296,16 @@ const formatPercent = (value: number): string => {
               </div>
 
               {/* Reserved Section */}
-              <div className="flex justify-between">
-                <label style={{ color: equityData[3].color }} className="font-medium">
-                  Reserved
-                </label>
-                <span>{formatPercent(equityData[3].value)}</span>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <label style={{ color: equityData[3].color }} className="font-medium">
+                    Reserved
+                  </label>
+                  <span>{formatCurrency(riskAdjustedValuation * equityData[3].value / 100)}</span>
+                </div>
+                <div className="text-sm text-gray-600">
+                  {formatPercent(equityData[3].value)}
+                </div>
               </div>
             </div>
           </div>
