@@ -4,66 +4,86 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { Switch } from '@/components/ui/switch';
 
 const EquityCalculator = () => {
-  const [numUsers, setNumUsers] = useState(100);
-  const [revenuePerUser, setRevenuePerUser] = useState(1000);
-  const [valuationMultiple, setValuationMultiple] = useState(10);
-  const [successProbability, setSuccessProbability] = useState(50);
-  const [monthsOfDev, setMonthsOfDev] = useState(5);
-  const [apiCostMonthly, setApiCostMonthly] = useState(25);
+    const [numUsers, setNumUsers] = useState(100);
+    const [revenuePerUser, setRevenuePerUser] = useState(1000);
+    const [valuationMultiple, setValuationMultiple] = useState(10);
+    const [successProbability, setSuccessProbability] = useState(50);
+    const [monthsOfDev, setMonthsOfDev] = useState(5);
+    const [apiCostMonthly, setApiCostMonthly] = useState(25);
+    const [isHourlyMode, setIsHourlyMode] = useState(false);
+    const [hourlyRate, setHourlyRate] = useState(62.50);
+    const [designerWeeklyPay, setDesignerWeeklyPay] = useState(200);
+    
+    const [equityData, setEquityData] = useState([
+      { name: 'Developer (Daniel)', value: 35, color: '#4F46E5' },
+      { name: 'Investment Group', value: 35, color: '#10B981' },
+      { name: 'Designer (Isaac)', value: 5, color: '#F59E0B' },
+      { name: 'Reserved', value: 25, color: '#6B7280' }
+    ]);
   
-  const [equityData, setEquityData] = useState([
-    { name: 'Developer (Daniel)', value: 35, color: '#4F46E5' },
-    { name: 'Investment Group', value: 35, color: '#10B981' },
-    { name: 'Designer (Isaac)', value: 5, color: '#F59E0B' },
-    { name: 'Reserved', value: 25, color: '#6B7280' }
-  ]);
-
-  // Calculate dev pay based on equity percentage
-  const calculateDevPay = (equity: number) => {
-    const maxPay = 12000; // Monthly pay at 0% equity
-    const standardPay = 4000; // Monthly pay at 35% equity
-    const standardEquity = 35;
+    // Calculate total hours
+    const totalHours = monthsOfDev * 20 * 4; // 20 hours per week * ~4 weeks per month
     
-    if (equity >= 100) return 0;
-    if (equity === 0) return maxPay;
-    if (equity === standardEquity) return standardPay;
-    
-    // Linear interpolation between points
-    if (equity < standardEquity) {
-      return maxPay - (equity * (maxPay - standardPay) / standardEquity);
-    } else {
-      return standardPay * (1 - ((equity - standardEquity) / (100 - standardEquity)));
+    // Calculate designer monthly pay
+    const designerMonthlyPay = designerWeeklyPay * 4;
+  
+    // Calculate dev pay based on mode
+    const getStandardMonthlyPay = () => {
+      const totalMonthlyBudget = 5000; // Total monthly budget
+      return totalMonthlyBudget - designerMonthlyPay; // Subtract designer pay
+    };
+  
+    function calculateDevPayFromEquity(equity: number) {
+      const standardMonthlyPay = getStandardMonthlyPay();
+      const maxPay = standardMonthlyPay * (12000/5000); // Scale max pay proportionally
+      const standardPay = standardMonthlyPay;
+      const standardEquity = 35;
+      
+      if (equity >= 100) return 0;
+      if (equity === 0) return maxPay;
+      if (equity === standardEquity) return standardPay;
+      
+      // Linear interpolation between points
+      if (equity < standardEquity) {
+        return maxPay - (equity * (maxPay - standardPay) / standardEquity);
+      } else {
+        return standardPay * (1 - ((equity - standardEquity) / (100 - standardEquity)));
+      }
     }
-  };
-
-  const devPayMonthly = calculateDevPay(equityData[0].value);
-  const annualRevenue = numUsers * revenuePerUser;
-  const baseValuation = annualRevenue * valuationMultiple;
-  const riskAdjustedValuation = baseValuation * (successProbability / 100);
   
-  const totalDevCost = devPayMonthly * monthsOfDev;
-  const totalApiCost = apiCostMonthly * monthsOfDev;
-  const totalInvestmentCost = totalDevCost + totalApiCost;
+    const devPayMonthly = isHourlyMode 
+      ? hourlyRate * 20 * 4  // 20 hours/week * 4 weeks
+      : calculateDevPayFromEquity(equityData[0].value);
+    
+    const devPayWeekly = devPayMonthly / 4;
+    const devPayHourly = devPayMonthly / (20 * 4);
   
-  const investmentGroupEquity = equityData[1].value;
-  const investmentGroupValue = riskAdjustedValuation * (investmentGroupEquity / 100);
-  const investmentMultiple = investmentGroupValue / totalInvestmentCost;
-  const perInvestorEquity = investmentGroupEquity / 3;
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const formatPercent = (value: number) => {
-    return `${value.toFixed(1)}%`;
-  };
-
+    const annualRevenue = numUsers * revenuePerUser;
+    const baseValuation = annualRevenue * valuationMultiple;
+    const riskAdjustedValuation = baseValuation * (successProbability / 100);
+    
+    const totalDevCost = (devPayMonthly + designerMonthlyPay) * monthsOfDev;
+    const totalApiCost = apiCostMonthly * monthsOfDev;
+    const totalInvestmentCost = totalDevCost + totalApiCost;
+    
+    const investmentGroupEquity = equityData[1].value;
+    const investmentGroupValue = riskAdjustedValuation * (investmentGroupEquity / 100);
+    const investmentMultiple = investmentGroupValue / totalInvestmentCost;
+  
+    const formatCurrency = (value: number) => {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0,
+      }).format(value);
+    };
+  
+    const formatPercent = (value: number) => {
+      return `${value.toFixed(1)}%`;
+    };
   const handleEquityChange = (index: number, newValue: number) => {
     const newEquityData = [...equityData];
     const oldValue = newEquityData[index].value;
@@ -155,15 +175,25 @@ const EquityCalculator = () => {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border shadow-sm">
         <CardHeader>
-          <CardTitle>Investment Costs</CardTitle>
+          <CardTitle className="flex justify-between items-center">
+            <span>Investment Costs</span>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-normal">Equity-based pay</span>
+              <Switch 
+                checked={isHourlyMode}
+                onCheckedChange={setIsHourlyMode}
+              />
+              <span className="text-sm font-normal">Hourly rate</span>
+            </div>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <div className="flex justify-between">
               <label>Development Period: {monthsOfDev} months</label>
-              <span>Monthly Dev Pay: {formatCurrency(devPayMonthly)}</span>
+              <span>Total Hours: {totalHours}</span>
             </div>
             <Slider 
               value={[monthsOfDev]}
@@ -171,6 +201,39 @@ const EquityCalculator = () => {
               max={12}
               step={1}
               onValueChange={([value]) => setMonthsOfDev(value)}
+              className="[&>.relative>.bg-primary]:bg-blue-600"
+            />
+          </div>
+
+          {isHourlyMode && (
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <label>Developer Hourly Rate: {formatCurrency(hourlyRate)}</label>
+                <span>Weekly: {formatCurrency(devPayWeekly)}</span>
+              </div>
+              <Slider 
+                value={[hourlyRate]}
+                min={25}
+                max={150}
+                step={5}
+                onValueChange={([value]) => setHourlyRate(value)}
+                className="[&>.relative>.bg-primary]:bg-blue-600"
+              />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <label>Designer Weekly Pay: {formatCurrency(designerWeeklyPay)}</label>
+              <span>Monthly: {formatCurrency(designerMonthlyPay)}</span>
+            </div>
+            <Slider 
+              value={[designerWeeklyPay]}
+              min={100}
+              max={500}
+              step={50}
+              onValueChange={([value]) => setDesignerWeeklyPay(value)}
+              className={`[&>.relative>.bg-primary]:bg-[${equityData[2].color}]`}
             />
           </div>
 
@@ -184,23 +247,28 @@ const EquityCalculator = () => {
               max={75}
               step={25}
               onValueChange={([value]) => setApiCostMonthly(value)}
+              className="[&>.relative>.bg-primary]:bg-blue-600"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className="p-3 rounded bg-gray-100">
-              <div className="text-sm text-gray-600">Total Development Cost</div>
+          <div className="grid grid-cols-3 gap-4 mt-4">
+            <div className="p-3 rounded bg-gray-50 border">
+              <div className="text-sm text-gray-600">Dev Hourly</div>
+              <div className="text-lg font-semibold">{formatCurrency(devPayHourly)}/hr</div>
+            </div>
+            <div className="p-3 rounded bg-gray-50 border">
+              <div className="text-sm text-gray-600">Total Dev Cost</div>
               <div className="text-lg font-semibold">{formatCurrency(totalDevCost)}</div>
             </div>
-            <div className="p-3 rounded bg-gray-100">
-              <div className="text-sm text-gray-600">Total Investment Cost</div>
+            <div className="p-3 rounded bg-gray-50 border">
+              <div className="text-sm text-gray-600">Total Investment</div>
               <div className="text-lg font-semibold">{formatCurrency(totalInvestmentCost)}</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border shadow-sm">
         <CardHeader>
           <CardTitle>Equity Distribution</CardTitle>
         </CardHeader>
@@ -225,77 +293,42 @@ const EquityCalculator = () => {
             </div>
             
             <div className="space-y-8">
-              {/* Developer Section */}
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <label style={{ color: equityData[0].color }} className="font-medium">
-                    Developer (Daniel)
-                  </label>
-                  <span className="font-medium">{formatPercent(equityData[0].value)}</span>
-                </div>
-                <div className="text-sm text-gray-600 mb-2 w-full text-right">
-                  {formatCurrency(riskAdjustedValuation * equityData[0].value / 100)}
-                </div>
-                <Slider 
-                  value={[equityData[0].value]}
-                  min={0}
-                  max={100}
-                  step={1}
-                  onValueChange={([value]) => handleEquityChange(0, value)}
-                />
-              </div>
-
-              {/* Investment Group Section */}
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <label style={{ color: equityData[1].color }} className="font-medium">
-                    Investment Group
-                  </label>
-                  <span className="font-medium">{formatPercent(equityData[1].value)}</span>
-                </div>
-                <div className="text-sm text-gray-600 mb-2 w-full text-right">
-                  {formatCurrency(riskAdjustedValuation * equityData[1].value / 100)}
-                </div>
-                <Slider 
-                  value={[equityData[1].value]}
-                  min={0}
-                  max={100}
-                  step={1}
-                  onValueChange={([value]) => handleEquityChange(1, value)}
-                />
-                <div className="text-sm text-gray-600 space-y-1 mt-2">
-                  <div className="flex justify-between">
-                    <span>Per Investor Value:</span>
-                    <span>{formatCurrency(investmentGroupValue / 3)}</span>
+              {equityData.map((equity, index) => (
+                index !== 3 && (
+                  <div key={equity.name} className="space-y-2">
+                    <div className="flex justify-between">
+                      <label style={{ color: equity.color }} className="font-medium">
+                        {equity.name}
+                      </label>
+                      <span className="font-medium">{formatPercent(equity.value)}</span>
+                    </div>
+                    <div className="text-sm text-gray-600 mb-2 w-full text-right">
+                      {formatCurrency(riskAdjustedValuation * equity.value / 100)}
+                    </div>
+                    <Slider 
+                      value={[equity.value]}
+                      min={0}
+                      max={100}
+                      step={1}
+                      onValueChange={([value]) => handleEquityChange(index, value)}
+                      className={`[&>.relative>.bg-primary]:bg-[${equity.color}]`}
+                    />
+                    {index === 1 && (
+                      <div className="text-sm text-gray-600 space-y-1 mt-2">
+                        <div className="flex justify-between">
+                          <span>Per Investor Value:</span>
+                          <span>{formatCurrency(investmentGroupValue / 3)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Investment Multiple:</span>
+                          <span>{investmentMultiple.toFixed(1)}x</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between">
-                    <span>Investment Multiple:</span>
-                    <span>{investmentMultiple.toFixed(1)}x</span>
-                  </div>
-                </div>
-              </div>
+                )
+              ))}
 
-              {/* Designer Section */}
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <label style={{ color: equityData[2].color }} className="font-medium">
-                    Designer (Isaac)
-                  </label>
-                  <span className="font-medium">{formatPercent(equityData[2].value)}</span>
-                </div>
-                <div className="text-sm text-gray-600 mb-2 w-full text-right">
-                  {formatCurrency(riskAdjustedValuation * equityData[2].value / 100)}
-                </div>
-                <Slider 
-                  value={[equityData[2].value]}
-                  min={0}
-                  max={100}
-                  step={1}
-                  onValueChange={([value]) => handleEquityChange(2, value)}
-                />
-              </div>
-
-              {/* Reserved Section */}
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <label style={{ color: equityData[3].color }} className="font-medium">
