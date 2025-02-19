@@ -233,7 +233,7 @@ const EquityCalculator = () => {
                   </label>
                   <span className="font-medium">{formatPercent(equityData[0].value)}</span>
                 </div>
-                <div className="text-sm text-gray-600 mb-2">
+                <div className="text-sm text-gray-600 mb-2 w-full text-right">
                   {formatCurrency(riskAdjustedValuation * equityData[0].value / 100)}
                 </div>
                 <Slider 
@@ -253,8 +253,8 @@ const EquityCalculator = () => {
                   </label>
                   <span className="font-medium">{formatPercent(equityData[1].value)}</span>
                 </div>
-                <div className="text-sm text-gray-600 mb-2">
-                  {formatCurrency(riskAdjustedValuation * equityData[1].value / 100)} • {formatPercent(perInvestorEquity)} per investor
+                <div className="text-sm text-gray-600 mb-2 w-full text-right">
+                  {formatCurrency(riskAdjustedValuation * equityData[1].value / 100)}
                 </div>
                 <Slider 
                   value={[equityData[1].value]}
@@ -283,7 +283,7 @@ const EquityCalculator = () => {
                   </label>
                   <span className="font-medium">{formatPercent(equityData[2].value)}</span>
                 </div>
-                <div className="text-sm text-gray-600 mb-2">
+                <div className="text-sm text-gray-600 mb-2 w-full text-right">
                   {formatCurrency(riskAdjustedValuation * equityData[2].value / 100)}
                 </div>
                 <Slider 
